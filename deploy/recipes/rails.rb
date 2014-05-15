@@ -27,7 +27,7 @@ node[:deploy].each do |application, deploy|
     app: application,
     user: deploy[:user],
     log: "#{deploy[:deploy_to]}/shared/log",
-    procfile: "#{deploy[:deploy_to]}/current/config/foreman/Procfile",
+    # procfile: "#{deploy[:deploy_to]}/current/config/foreman/Procfile",
     root: deploy[:current_path]
   }.map { |k,v| "--#{k} #{v}" }.join(" ")
 
