@@ -34,14 +34,6 @@ node[:deploy].each do |application, deploy|
   # comando1 = "sudo bundle exec foreman export upstart /etc/init #{options}"
   # comando2 = "sudo /sbin/start #{application} || sudo /sbin/restart #{application}"
 
-  comando3 = "sudo bundle exec sidekiq -C config/sidekiq.yml"
-
-  execute "start sidekiq #{application}" do
-    cwd deploy[:current_path]
-    command comando3
-    user deploy[:user]
-  end
-
   # execute "export foreman config for #{application}" do
   #   cwd deploy[:current_path]
   #   command comando1
