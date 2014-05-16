@@ -137,6 +137,21 @@ define :opsworks_deploy do
               deploy[:database][:host].present?
             end
           end.run_action(:create)
+
+          template "#{node[:deploy][application][:deploy_to]}/shared/config/mongoid.yml" do
+            source "mongoid.yml.erb"
+            cookbook 'rails'
+            mode "0660"
+            group node[:deploy][application][:group]
+            owner node[:deploy][application][:user]
+            variables(:mongoid => node[:deploy][application][:mongoid], :environment => node[:deploy][application][:rails_env])
+
+            notifies :run, "execute[restart Rails app #{application}]"
+
+            only_if do
+              deploy[:mongoid].present? && deploy[:mongoid][:host].present? && File.directory?("#{deploy[:deploy_to]}/shared/config/")
+            end
+          end.run_action(:create)
         elsif deploy[:application_type] == 'php'
           template "#{node[:deploy][application][:deploy_to]}/shared/config/opsworks.php" do
             cookbook 'php'
