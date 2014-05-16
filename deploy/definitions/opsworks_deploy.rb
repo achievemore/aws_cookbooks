@@ -146,8 +146,6 @@ define :opsworks_deploy do
             owner node[:deploy][application][:user]
             variables(:mongoid => node[:deploy][application][:mongoid], :environment => node[:deploy][application][:rails_env])
 
-            notifies :run, "execute[restart Rails app #{application}]"
-
             only_if do
               deploy[:mongoid].present? && deploy[:mongoid][:host].present? && File.directory?("#{deploy[:deploy_to]}/shared/config/")
             end
