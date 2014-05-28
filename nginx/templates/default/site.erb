@@ -5,6 +5,7 @@ server {
 
   location / {
     root   <%= @application[:absolute_document_root] %>;
+    proxy_read_timeout 300;
     index  index.html index.htm index.php;
   }
   
@@ -42,6 +43,7 @@ server {
 
   location / {
     root   <%= @application[:absolute_document_root] %>;
+    proxy_read_timeout 300;
     index  index.html index.htm index.php;
   }
   
