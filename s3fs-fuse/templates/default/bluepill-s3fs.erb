@@ -4,7 +4,7 @@ Bluepill.application("s3fs") do |app|
       process.pid_file = "<%= File.join(@pid_dir, 's3fs', "s3fs-#{mount[:path].gsub('/', '_')}") %>"
       process.working_dir = "/tmp"
       process.start_command "s3fs -f <%= mount[:bucket] %> <%= mount[:path] %> -o " +
-        "uid=4000,gid=33,allow_other,nonempty,url=https://s3.amazonaws.com,passwd_file=/etc/passwd-s3fs," +
+        "allow_other,uid=4000,gid=33,nonempty,url=https://s3.amazonaws.com,passwd_file=/etc/passwd-s3fs," +
         "use_cache=<%= mount[:tmp_store] || "/tmp/s3_cache" %>,retries=20,dev," +
         "suid<%= ",noupload" if mount[:no_upload] %>,<%= mount[:read_only] ? "ro" : "rw" %>"
       process.stop_command "umount <%= mount[:path] %>"
