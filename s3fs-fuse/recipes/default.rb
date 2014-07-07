@@ -29,7 +29,7 @@ else
       fstype 'fuse'
       dump 0
       pass 0
-      options "allow_other,uid=4000,gid=33,nonempty,url=#{node[:s3fs_fuse][:s3_url]},passwd_file=/etc/passwd-s3fs,use_cache=#{dir_info[:tmp_store] || '/tmp/s3_cache'},retries=20#{",noupload" if dir_info[:no_upload]},#{dir_info[:read_only] ? 'ro' : 'rw'},dev.suid"
+      options "allow_other,uid=4000,gid=33,nonempty,url=#{node[:s3fs_fuse][:s3_url]},passwd_file=/etc/passwd-s3fs,retries=20#{",noupload" if dir_info[:no_upload]},#{dir_info[:read_only] ? 'ro' : 'rw'},dev.suid"
       action [:mount, :enable]
       not_if "mountpoint -q #{dir_info[:path]}"
     end
