@@ -3,4 +3,4 @@ site :opscode
 cookbook 'apt'
 cookbook 'newrelic'
 cookbook 'bluepill'
-cookbook 'mongodb'
+cookbook 'rc_mon'
