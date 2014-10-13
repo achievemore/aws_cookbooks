@@ -103,17 +103,17 @@ define :opsworks_deploy do
             OpsWorks::RailsConfiguration.bundle(application, node[:deploy][application], release_path)
           end
 
-          Chef::Log.info("Precompiling Rails assets with environment #{deploy[:rails_env]} - #{release_path}")
+          # Chef::Log.info("Precompiling Rails assets with environment #{deploy[:rails_env]} - #{release_path}")
 
-          execute 'rake assets:precompile' do
-            cwd release_path
-            user 'deploy'
-            command "bundle exec rake assets:precompile RAILS_ENV=#{deploy[:rails_env]} RAILS_GROUPS=assets"
-            environment 'RAILS_ENV' => deploy[:rails_env]
-            only_if do
-              node[:deploy][application][:rails]
-            end
-          end
+          # execute 'rake assets:precompile' do
+          #   cwd release_path
+          #   user 'deploy'
+          #   command "bundle exec rake assets:precompile RAILS_ENV=#{deploy[:rails_env]} RAILS_GROUPS=assets"
+          #   environment 'RAILS_ENV' => deploy[:rails_env]
+          #   only_if do
+          #     node[:deploy][application][:rails]
+          #   end
+          # end
 
           node.default[:deploy][application][:database][:adapter] = OpsWorks::RailsConfiguration.determine_database_adapter(
             application,
