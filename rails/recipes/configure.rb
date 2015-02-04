@@ -44,4 +44,19 @@ node[:deploy].each do |application, deploy|
       deploy[:memcached][:host].present? && File.directory?("#{deploy[:deploy_to]}/shared/config/")
     end
   end
+
+  template "#{deploy[:deploy_to]}/shared/config/mongoid.yml" do
+    source "mongoid.yml.erb"
+    cookbook 'rails'
+    mode "0660"
+    group deploy[:group]
+    owner deploy[:user]
+    variables(:mongoid => deploy[:mongoid], :environment => deploy[:rails_env])
+
+    notifies :run, "execute[restart Rails app #{application}]"
+
+    only_if do
+      deploy[:mongoid].present? && deploy[:mongoid][:host].present? && File.directory?("#{deploy[:deploy_to]}/shared/config/")
+    end
+  end
 end
