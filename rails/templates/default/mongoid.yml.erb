@@ -4,7 +4,9 @@
     default:
       database: <%= @mongoid[:database].to_s.inspect %>
       hosts:
-        - <%= (@mongoid[:host] || '127.0.0.1:27017').to_s.inspect %>
+        <% @mongoid[:host].each do |host| %>
+          - <%= (host || '127.0.0.1:27017').to_s.inspect %>
+        <% end %>
   options:
     identity_map_enabled: true
     raise_not_found_error: false
