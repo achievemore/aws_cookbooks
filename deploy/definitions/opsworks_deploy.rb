@@ -72,11 +72,13 @@ define :opsworks_deploy do
       migrate deploy[:migrate]
       migration_command deploy[:migrate_command]
       environment deploy[:environment].to_hash
-      create_dirs_before_symlink( deploy[:create_dirs_before_symlink] )
-      symlink_before_migrate( deploy[:symlink_before_migrate] )
+      purge_before_symlink(deploy[:purge_before_symlink]) unless deploy[:purge_before_symlink].nil?
+      create_dirs_before_symlink(deploy[:create_dirs_before_symlink])
+      symlink_before_migrate(deploy[:symlink_before_migrate])
+      symlinks(deploy[:symlinks]) unless deploy[:symlinks].nil?
       action deploy[:action]
 
-      if deploy[:application_type] == 'rails'
+      if deploy[:application_type] == 'rails' && node[:opsworks][:instance][:layers].include?('rails-app')
         restart_command "sleep #{deploy[:sleep_before_restart]} && #{node[:opsworks][:rails_stack][:restart_command]}"
       end
 
@@ -103,18 +105,6 @@ define :opsworks_deploy do
             OpsWorks::RailsConfiguration.bundle(application, node[:deploy][application], release_path)
           end
 
-          # Chef::Log.info("Precompiling Rails assets with environment #{deploy[:rails_env]} - #{release_path}")
-
-          # execute 'rake assets:precompile' do
-          #   cwd release_path
-          #   user 'deploy'
-          #   command "bundle exec rake assets:precompile RAILS_ENV=#{deploy[:rails_env]} RAILS_GROUPS=assets"
-          #   environment 'RAILS_ENV' => deploy[:rails_env]
-          #   only_if do
-          #     node[:deploy][application][:rails]
-          #   end
-          # end
-
           node.default[:deploy][application][:database][:adapter] = OpsWorks::RailsConfiguration.determine_database_adapter(
             application,
             node[:deploy][application],
@@ -137,19 +127,8 @@ define :opsworks_deploy do
               deploy[:database][:host].present?
             end
           end.run_action(:create)
-
-          template "#{node[:deploy][application][:deploy_to]}/shared/config/mongoid.yml" do
-            source "mongoid.yml.erb"
-            cookbook 'rails'
-            mode "0660"
-            group node[:deploy][application][:group]
-            owner node[:deploy][application][:user]
-            variables(:mongoid => node[:deploy][application][:mongoid], :environment => node[:deploy][application][:rails_env])
-
-            only_if do
-              deploy[:mongoid].present? && deploy[:mongoid][:host].present? && File.directory?("#{deploy[:deploy_to]}/shared/config/")
-            end
-          end.run_action(:create)
+        elsif deploy[:application_type] == 'aws-flow-ruby'
+          OpsWorks::RailsConfiguration.bundle(application, node[:deploy][application], release_path)
         elsif deploy[:application_type] == 'php'
           template "#{node[:deploy][application][:deploy_to]}/shared/config/opsworks.php" do
             cookbook 'php'
@@ -203,6 +182,18 @@ define :opsworks_deploy do
     else
       raise "Unsupport Rails stack"
     end
+  end
+
+  bash "Enable selinux var_log_t target for application log files" do
+    dir_path_log = "#{deploy[:deploy_to]}/shared/log"
+    context = "var_log_t"
+
+    user "root"
+    code <<-EOH
+    semanage fcontext --add --type #{context} "#{dir_path_log}(/.*)?" && restorecon -rv "#{dir_path_log}"
+    EOH
+    not_if { OpsWorks::ShellOut.shellout("/usr/sbin/semanage fcontext -l") =~ /^#{Regexp.escape("#{dir_path_log}(/.*)?")}\s.*\ssystem_u:object_r:#{context}:s0/ }
+    only_if { platform_family?("rhel") && ::File.exist?("/usr/sbin/getenforce") && OpsWorks::ShellOut.shellout("/usr/sbin/getenforce").strip == "Enforcing" }
   end
 
   template "/etc/logrotate.d/opsworks_app_#{application}" do

@@ -18,6 +18,8 @@ module OpsWorks
 
         execute "Download application from S3: #{scm_options[:repository]}" do
           command "#{node[:opsworks_agent][:current_dir]}/bin/s3curl.pl --id opsworks -- -o #{tmpdir}/archive #{scm_options[:repository]}"
+          retries 2
+          retry_delay 10
         end
 
         execute 'extract files' do
@@ -26,7 +28,7 @@ module OpsWorks
 
         execute 'create git repository' do
           cwd "#{tmpdir}/archive.d"
-          command "find . -type d -name .git -exec rm -rf {} \\;; find . -type f -name .gitignore -exec rm -f {} \\;; git init; git add .; git -c user.name='AWS OpsWorks' -c user.email=none commit -m 'Create temporary repository from downloaded contents.'"
+          command "find . -type d -name .git -exec rm -rf {} \\;; find . -type f -name .gitignore -exec rm -f {} \\;; git init; git add .; git config user.name 'AWS OpsWorks'; git config user.email 'root@localhost'; git commit -m 'Create temporary repository from downloaded contents.'"
         end
 
         "#{tmpdir}/archive.d"

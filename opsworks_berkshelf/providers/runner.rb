@@ -12,15 +12,18 @@ action :berks_install do
     block do
       Chef::Log.info OpsWorks::ShellOut.shellout(
         berks_install_command,
-        :cwd => Opsworks::InstanceAgent::Environment.site_cookbooks_path,
+        :cwd => ::File.dirname(OpsWorks::Berkshelf.berksfile),
         :environment  => {
-          "BERKSHELF_PATH" => Opsworks::InstanceAgent::Environment.berkshelf_cache_path
+          "BERKSHELF_PATH" => Opsworks::InstanceAgent::Environment.berkshelf_cache_path,
+          "LC_ALL" => "en_US.UTF-8"
         }
       )
+
+      ::FileUtils.rm_rf Opsworks::InstanceAgent::Environment.berkshelf_cache_path
     end
 
     only_if do
-      OpsWorks::Bershelf.berkshelf_installed? && OpsWorks::Bershelf.berksfile_available?
+      OpsWorks::Berkshelf.berkshelf_installed? && OpsWorks::Berkshelf.berksfile_available?
     end
   end
 end
@@ -34,5 +37,5 @@ def berks_install_command
 
   options += ' --debug' if node['opsworks_berkshelf']['debug']
 
-  "#{OpsWorks::Bershelf.berkshelf_binary} #{options}"
+  "#{OpsWorks::Berkshelf.berkshelf_binary} #{options}"
 end

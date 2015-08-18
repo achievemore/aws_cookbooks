@@ -13,6 +13,7 @@ action :install do
         provider Chef::Provider::Package::Dpkg
       elsif platform_family?("rhel")
         provider Chef::Provider::Package::Yum
+        options "--disablerepo=*"
       end
 
       # to run during chef compile phase and thus keep the execution
@@ -48,7 +49,14 @@ def asset_name
 end
 
 def asset_url
-  @asset_url ||= URI.parse("#{node[:opsworks_commons][:assets_url]}/packages/#{node[:platform]}/#{node[:platform_version]}/#{asset_name}")
+  _platform_version = node[:platform_version]
+  if %w(redhat centos).include?(node["platform"]) && Chef::VersionConstraint.new("~> 6.0").include?(node["platform_version"])
+    _platform_version = "6"
+  elsif rhel7?
+    _platform_version = "7"
+  end
+
+  @asset_url ||= URI.parse("#{node[:opsworks_commons][:assets_url]}/packages/#{node[:platform]}/#{_platform_version}/#{asset_name}")
 end
 
 # download assets using the downloader.sh
@@ -68,10 +76,10 @@ def local_asset
     yield(local_asset_path)
 
     # remove all downloaded file for this asset, also failed attemps.
-    ::FileUtils.rm_rf("#{asset_basedir}.*", :verbose => true) rescue Chef::Log.error "Couldn't cleanup downloaded assets for #{@new_resource.name}."
+    ::FileUtils.rm_rf(Dir["#{asset_basedir}.*"], :verbose => true) rescue Chef::Log.error "Couldn't cleanup downloaded assets for #{@new_resource.name}."
   elsif @new_resource.ignore_failure
-    Chef::Log.error "Failed to download asset #{asset_name} for #{@new_resource.name}."
+    Chef::Log.error "Failed to download asset #{asset_name} for #{@new_resource.name} with url #{asset_url}."
   elsif !@new_resource.ignore_failure
-    raise Chef::Exceptions::ResourceNotFound, "Failed to download asset #{@new_resource.asset} for #{@new_resource.name}."
+    raise Chef::Exceptions::ResourceNotFound, "Failed to download asset #{@new_resource.asset} for #{@new_resource.name} with url #{asset_url}."
   end
 end
