@@ -22,8 +22,11 @@ server {
     client_max_body_size <%= @application[:nginx][:client_max_body_size] %>;
   <% end %>
 
-  location /assets {
-    add_header 'Access-Control-Allow-Origin' '*';
+  location ^~ /assets/ {
+      gzip_static on;
+      expires max;
+      add_header Cache-Control public;
+      add_header 'Access-Control-Allow-Origin' '*';
   }
 
   location / {
@@ -84,8 +87,11 @@ server {
     client_max_body_size <%= @application[:nginx][:client_max_body_size] %>;
   <% end %>
 
-  location /assets {
-    add_header 'Access-Control-Allow-Origin' '*';
+  location ^~ /assets/ {
+      gzip_static on;
+      expires max;
+      add_header Cache-Control public;
+      add_header 'Access-Control-Allow-Origin' '*';
   }
 
   location / {
