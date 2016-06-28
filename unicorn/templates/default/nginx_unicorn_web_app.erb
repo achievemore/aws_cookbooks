@@ -25,6 +25,7 @@ server {
   location ^~ /assets/ {
       gzip_static on;
       expires max;
+      access_log off;
       add_header Cache-Control public;
       add_header 'Access-Control-Allow-Origin' '*';
   }
@@ -90,6 +91,7 @@ server {
   location ^~ /assets/ {
       gzip_static on;
       expires max;
+      access_log off;
       add_header Cache-Control public;
       add_header 'Access-Control-Allow-Origin' '*';
   }
