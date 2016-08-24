@@ -25,9 +25,10 @@ when "nginx_unicorn"
   normal[:opsworks][:rails_stack][:recipe] = "unicorn::rails"
   normal[:opsworks][:rails_stack][:needs_reload] = true
   normal[:opsworks][:rails_stack][:service] = 'unicorn'
-  normal[:opsworks][:rails_stack][:restart_command] = '../../shared/scripts/unicorn clean-restart'
+  normal[:opsworks][:rails_stack][:restart_command] = "../../shared/scripts/unicorn restart"
 else
   raise "Unknown stack: #{node[:opsworks][:rails_stack][:name].inspect}"
 end
 
 include_attribute "deploy::customize"
+

@@ -27,6 +27,8 @@ include_recipe "passenger_apache2"
 if platform?("centos","redhat","amazon") and dist_only?
   package "mod_passenger" do
     notifies :run, "execute[generate-module-list]", :immediately
+    retries 3
+    retry_delay 5
   end
 
   file "#{node[:apache][:dir]}/conf.d/mod_passenger.conf" do
@@ -54,3 +56,4 @@ end
 apache_module 'passenger' do
   module_path node[:passenger][:module_path]
 end
+
